@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "UI Navigator — Proactive Browser Assistant",
+  "version": "1.0.0",
+  "description": "Watches your active tab and surfaces relevant info proactively using Gemini vision.",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting",
+    "storage",
+    "geolocation",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "UI Navigator"
+  }
+}
