@@ -28,6 +28,7 @@ class AnalyzeRequest(BaseModel):
     url: str
     title: str | None = None
     geolocation: dict | None = None  # { lat: float, lng: float }
+    recent_history: list[dict] | None = None  # [{ url, title, visitCount }]
 
 
 class AnalyzeResponse(BaseModel):
@@ -78,6 +79,7 @@ async def analyze(req: AnalyzeRequest):
             page_state=page_state,
             url=req.url,
             geolocation=req.geolocation,
+            recent_history=req.recent_history,
         )
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Agent error: {e}")

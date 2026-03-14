@@ -41,7 +41,7 @@ curl http://localhost:8080/health
 
 ### 2. Chrome Extension
 
-1. Set `BACKEND_URL` in `extension/background.js` to `http://localhost:8080` (local) or your Cloud Run URL.
+1. Set `BACKEND_URL` in `extension/background.js` (line 4) to `http://localhost:8080` (local) or your deployed Cloud Run URL.
 2. Open `chrome://extensions/` → Enable **Developer mode** → **Load unpacked** → select the `extension/` folder.
 3. Navigate to any page — tiles appear bottom-right within ~5 seconds.
 

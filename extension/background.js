@@ -1,9 +1,12 @@
 // background.js — service worker
 // Polls the active tab, captures screenshots, sends to backend for analysis.
 
-const BACKEND_URL = "http://localhost:8080";
+const BACKEND_URL = "YOUR_CLOUD_RUN_URL"; // e.g. https://your-service-XYZ.us-central1.run.app
 const POLL_INTERVAL_MS = 5000;   // base poll interval
 const DEBOUNCE_MS = 3000;        // min gap between sends
+const HISTORY_MAX_RESULTS = 5;
+const HISTORY_LOOKBACK_MS = 3600000; // 1 hour in ms
+const HISTORY_KEEP = 5;
 
 let lastSentAt = 0;
 let lastScreenshotHash = null;
@@ -19,6 +22,22 @@ function quickHash(str) {
     hash |= 0;
   }
   return hash;
+}
+
+async function getRecentHistory() {
+  try {
+    const items = await chrome.history.search({
+      text: '',
+      startTime: Date.now() - HISTORY_LOOKBACK_MS,
+      maxResults: HISTORY_MAX_RESULTS
+    });
+    return items
+      .filter(h => h.url && !h.url.startsWith('chrome'))
+      .map(h => ({ url: h.url, title: h.title || '', visitCount: h.visitCount }))
+      .slice(0, HISTORY_KEEP);
+  } catch {
+    return [];
+  }
 }
 
 async function getGeolocation(tabId) {
@@ -63,13 +82,17 @@ async function captureAndSend(tab) {
   lastUrl = tab.url;
 
   const base64Image = dataUrl.split(",")[1]; // strip data:image/png;base64,
-  const geolocation = await getGeolocation(tab.id);
+  const [geolocation, recent_history] = await Promise.all([
+    getGeolocation(tab.id),
+    getRecentHistory(),
+  ]);
 
   const payload = {
     screenshot: base64Image,
     url: tab.url,
     title: tab.title,
-    geolocation
+    geolocation,
+    recent_history
   };
 
   try {
