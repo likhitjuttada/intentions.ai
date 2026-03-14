@@ -10,19 +10,7 @@ Watches your active browser tab via screenshots, uses Gemini's multimodal vision
 
 ## Architecture
 
-```
-[Chrome Extension]
-  background.js  — captures screenshot every 5s or on tab change
-  content.js     — injects floating tile overlay (max 3 tiles, each dismissable)
-        │
-        ▼  POST /analyze { screenshot, url, title, geolocation }
-[Backend: FastAPI on Cloud Run]
-  vision.py  — Gemini 2.0 Flash multimodal: screenshot → { intent, page_state, confidence }
-  agent.py   — Google ADK root agent: intent → web_search → up to 3 cards
-        │
-        ▼  { intent, cards[] }
-[Chrome Extension overlay — bottom-right floating tiles]
-```
+![intentions.ai — Architecture & Data Flow](live_architecture.png)
 
 ---
 
