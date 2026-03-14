@@ -43,7 +43,39 @@ curl http://localhost:8080/health
 
 1. Set `BACKEND_URL` in `extension/background.js` (line 4) to `http://localhost:8080` (local) or your deployed Cloud Run URL.
 2. Open `chrome://extensions/` → Enable **Developer mode** → **Load unpacked** → select the `extension/` folder.
-3. Navigate to any page — tiles appear bottom-right within ~5 seconds.
+3. Any time you change `BACKEND_URL`, click the **reload icon** on the extension card in `chrome://extensions/` for the change to take effect.
+4. Navigate to any page — the extension runs passively in the background. Tiles appear bottom-right within ~5 seconds if Gemini infers your intent with confidence ≥ 0.3. On low-confidence pages (blank tabs, internal pages) nothing is shown.
+
+---
+
+## Testing
+
+### 1. Health check
+```bash
+curl https://YOUR_CLOUD_RUN_URL/health
+# Expected: {"status":"ok"}
+```
+
+### 2. Backend end-to-end (minimal 1×1 PNG)
+```bash
+curl -s -X POST https://YOUR_CLOUD_RUN_URL/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "screenshot": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "url": "https://example.com",
+    "title": "Test"
+  }'
+# Expected: {"intent":"...","page_state":"...","confidence":<float>,"cards":[]}
+```
+
+### 3. Extension smoke test
+1. Load the extension in `chrome://extensions/` (Developer mode → Load unpacked → `extension/`)
+2. Open any public webpage (e.g. `https://my.uscis.gov` or a Google search)
+3. Open DevTools → **Service Worker** console for the extension
+4. Within ~5 seconds you should see a POST to `/analyze` logged — and tiles appear bottom-right if confidence ≥ 0.3 and the agent returns cards
+
+### 4. Low-confidence skip
+Navigate to `chrome://newtab` — the extension skips it (chrome:// pages are filtered) and no request is sent.
 
 ---
 
@@ -63,17 +95,7 @@ gcloud secrets create google-api-key --data-file=- <<< "your-api-key"
 gcloud builds submit --config cloudbuild.yaml
 ```
 
-Or manually:
-```bash
-gcloud run deploy ui-navigator-backend \
-  --source . \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars GOOGLE_API_KEY=your-key \
-  --memory 512Mi
-```
-
-After deploy, update `BACKEND_URL` in `extension/background.js` with your Cloud Run URL.
+After deploy, update `BACKEND_URL` in `extension/background.js` (line 4) with your Cloud Run URL, then reload the extension.
 
 ---
 
