@@ -27,14 +27,8 @@ steps:
       - "--memory=512Mi"
       - "--cpu=1"
       - "--max-instances=10"
-      - "--set-env-vars=GOOGLE_API_KEY=$$GOOGLE_API_KEY"
-    secretEnv:
-      - GOOGLE_API_KEY
-
-availableSecrets:
-  secretManager:
-    - versionName: projects/$PROJECT_ID/secrets/google-api-key/versions/latest
-      env: GOOGLE_API_KEY
+      - "--remove-env-vars=GOOGLE_API_KEY"
+      - "--update-secrets=GOOGLE_API_KEY=google-api-key:latest"
 
 images:
   - "gcr.io/$PROJECT_ID/ui-navigator-backend:$COMMIT_SHA"
